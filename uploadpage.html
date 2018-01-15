@@ -1,0 +1,183 @@
+<html>
+    <head>
+        <meta http-equiv = "Content-Type" content="text/html" charset="utf-8" />
+        <meta name="viewport" content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="format-detection" content="telephone=no">
+        <title>图片上传</title>
+    <style>
+        body {
+          margin: 0;
+        }
+        .square {
+          display: inline-block;
+          position:relative;
+          margin: 0.4rem auto auto 0.4rem;
+          height: 4.8rem;
+          width: 4.8rem;
+        }
+        #submit {
+          font-size: 0.9rem;
+          color: #ffffff;
+          border: none;
+          border-radius: 1rem;
+          outline-style: none;
+          background-color:red;
+          height: 2rem;
+          width: 12.3rem;
+        }
+        #uploadDiv {
+          font-size: 0.65rem;
+          color: #a4a4a4;
+          text-align:center;
+          vertical-align:top;
+          border: 1px solid #dddddd;
+        }
+        .addIcon {
+          display: block;
+          height: 3.5rem;
+          width: 3.5rem;
+          margin: auto;
+        }
+        .delIcon {
+          position:absolute;
+          top:-8px;
+          right:-7px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript">
+        (function(doc, win) {
+            //屏幕适配设置
+            var docEl = doc.documentElement,
+                resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize',
+                recalc = function() {
+                    var clientWidth = docEl.clientWidth;
+                    if (!clientWidth) return;
+                    docEl.style.fontSize = 20 * (clientWidth / 320) + 'px';
+                };
+            if (!doc.addEventListener) return;
+            win.addEventListener(resizeEvt, recalc, false);
+            doc.addEventListener('DOMContentLoaded', recalc, false);
+        })(document, window);
+    </script>
+      
+    <script type="text/javascript">
+        $(function() {
+            window.URL = window.URL || window.webkitURL;
+            var curFiles = [];
+    
+            function delClick(){
+                var name = this.event.target.parentNode.previousSibling.innerText;
+                if(name){
+                    this.event.target.parentNode.parentNode.remove();
+                    for(var i = 0; i < curFiles.length; i++){
+                        if(curFiles[i].name === name){
+                            curFiles.splice(i,1);
+                            verifyImg();
+                            return;
+                        }
+                    }
+                }
+            }
+            window.delClick = delClick;
+
+            function preview(files){
+                verifyImg();
+                for(var i = 0; i < files.length; i++){
+                    var srcUrl = window.URL.createObjectURL(files[i]);
+                    var imgsHtml = '<div k="'+ i +'" class="square">'
+                            + '<label class="hidden">'+ files[i].name +'</label>'
+                            + '<svg onclick="delClick()" t="1515637410535" class="icon delIcon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1591" data-spm-anchor-id="a313x.7781069.0.i17" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24"><defs><style type="text/css"></style></defs><path d="M512.871 64.813c-246.842 0-446.95 200.107-446.95 446.95 0 246.846 200.107 446.951 446.95 446.951 246.847 0 446.952-200.105 446.952-446.951C959.823 264.92 759.716 64.813 512.871 64.813z" p-id="1592" fill="#a4a4a4" data-spm-anchor-id="a313x.7781069.0.i16" class="selected"></path><path d="M704.035 646.577c16.077 16.076 16.077 42.143 0 58.219-16.076 16.076-42.142 16.076-58.219 0L511.452 570.433 377.089 704.796c-16.077 16.076-42.143 16.076-58.22 0-16.076-16.076-16.076-42.143 0-58.219l134.364-134.365L318.869 377.849c-16.076-16.077-16.076-42.142 0-58.219 16.077-16.077 42.143-16.077 58.22 0l134.363 134.363L645.816 319.63c16.077-16.077 42.143-16.077 58.219 0 16.077 16.077 16.077 42.142 0 58.219L569.672 512.212 704.035 646.577 704.035 646.577z" p-id="1593" fill="#ffffff" data-spm-anchor-id="a313x.7781069.0.i11" class="selected"></path></svg>'
+                            + '<img style="width:100%;height:100%" src="' + srcUrl + '" alt=""/>'
+                            + '</div>';
+                    $("#uploadDiv").before(imgsHtml);
+                    $("#uploadDiv").on("load",function() {
+                        window.URL.revokeObjectURL(this.srcUrl);
+                    })
+                }
+            }
+
+            function verifyImg(){
+                curFiles.length > 8 ? $("#uploadDiv").hide() : $("#uploadDiv").show();
+            }
+
+            function verifyCount(){
+                if(curFiles.length === 0) {
+                    window.alert('还未选择文件');
+                    return;
+                }
+                if(curFiles.length > 9){
+                    window.alert('文件数不能超过9个，你选择了' + curFiles.length + '个');
+                    return;
+                }
+            }
+            
+            $("#input").bind("change",function(e){
+                files = this.files;
+                // 原始FileList对象不可更改，所以将其赋予curFiles提供接下来的修改
+                if (files && files.length) {
+                    Array.prototype.push.apply(curFiles, files);
+                    preview(files);
+                }
+            });
+
+            $("#uploadDiv").on("click",function(){
+                $("#input").click();
+            });
+
+            $("#submit").on("click",function(){
+                if(window.File && window.FileList){
+                    if(curFiles.length === 0) {
+                        window.alert('还未选择文件');
+                        return;
+                    }else if(curFiles.length > 9){
+                        window.alert('文件数不能超过9个，你选择了' + curFiles.length + '个');
+                        return;
+                    }else {
+                        var fd = new FormData($('#form')[0]);
+                        for (var i = 0, j = curFiles.length; i < j; i++) {
+                            fd.append('image', curFiles[i]);
+                        }
+                        $.ajax({
+                            url: '/image/upload',
+                            type: 'post',
+                            data: fd,
+                            processData: false,
+                            contentType: false,
+                            success: function(rs) {
+                                window.alert('上传成功');
+                            },error: function(err) {
+                                console.log(err);
+                                window.alert('请求报错:'+ err.statusText);
+                            }
+                        });
+                    }
+                }else {
+                    window.alert('抱歉，你的浏览器不支持FileAPI，请升级浏览器！');
+                }
+            });
+        });
+    </script>
+  </head>
+  
+  <body>
+    <form id="form" action="/image/upload" method="post" enctype="multipart/form-data" onsubmit="return fileCountCheck(this);">
+        <input style="display: none" id="input" type="file" accept="image/*" multiple/>
+        
+        <div id="fileImg" style="display: tabindex">
+            <div id="uploadDiv" class="square">
+                <svg class="icon addIcon" width="60px" height="60.00px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M933.149 333.723h-80.456v80.47a26.798 26.798 0 0 1-26.829 26.817 26.802 26.802 0 0 1-26.823-26.816v-80.468h-80.445a26.82 26.82 0 0 1-23.586-13.292 26.83 26.83 0 0 1 0-27.073 26.823 26.823 0 0 1 23.586-13.291h80.455V199.6a26.78 26.78 0 0 1 7.844-18.982 26.768 26.768 0 0 1 18.977-7.849 26.782 26.782 0 0 1 18.981 7.848 26.801 26.801 0 0 1 7.849 18.984v80.47h80.456a26.812 26.812 0 0 1 18.975 7.842 26.803 26.803 0 0 1 7.855 18.973c-0.005 14.823-12.018 26.838-26.838 26.841v-0.004h-0.001z m-735.03 107.313a23.676 23.676 0 0 1-16.744-6.941 23.679 23.679 0 0 1-6.922-16.755 23.649 23.649 0 0 1 23.666-23.667h94.664a23.631 23.631 0 0 1 16.74 6.925 23.647 23.647 0 0 1 6.921 16.742 23.659 23.659 0 0 1-23.66 23.696h-94.665z m118.325 126.183c0-87.028 70.774-157.782 157.771-157.782 87.004 0 157.779 70.754 157.779 157.782 0 87.031-70.776 157.786-157.779 157.786-86.997 0-157.772-70.745-157.772-157.786h0.001z m262.966 0c0-57.985-47.178-105.175-105.196-105.175-58.001 0-105.179 47.179-105.179 105.175 0 58.039 47.178 105.189 105.179 105.189 58.018 0 105.196-47.149 105.196-105.189z m23.505-236.667a47.035 47.035 0 0 0 2.898-15.778 47.33 47.33 0 0 0-47.331-47.334H379.32c-26.135 0.008-47.32 21.195-47.33 47.334 0 5.571 1.142 10.815 2.898 15.778H142.901c-17.424 0.009-31.55 14.13-31.564 31.557v410.243a31.577 31.577 0 0 0 9.247 22.311 31.568 31.568 0 0 0 22.315 9.237h631.093a31.547 31.547 0 0 0 22.308-9.238 31.556 31.556 0 0 0 9.237-22.31V472.557h47.341v299.795c0 43.571-35.332 78.881-78.886 78.881H142.9c-43.579 0-78.887-35.31-78.887-78.881V362.109c0-43.574 35.308-78.892 78.887-78.892h156.8c7.301-35.995 39.11-63.115 77.285-63.115h183.842c38.156 0 69.983 27.121 77.29 63.115h22.801v47.335h-58.003z" fill="#dddddd" /></svg>
+                <span>点击添加图片</span>
+            </div>
+        </div>
+        <div style="position:absolute;bottom:50px;left:50%;transform:translateX(-50%);">
+            <input type="button" id="submit" value="提交"/>
+        </div>
+    </form>
+  </body>
+  </html>
